@@ -6,8 +6,11 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
-const AI_BRAIN = "http://127.0.0.1:4000";
-const PORT = 3010;
+const AI_BRAIN = (process.env.AI_BRAIN_API_URL || process.env.AI_BRAIN_API || "").replace(
+  /\/+$/,
+  "",
+);
+const PORT = Number(process.env.NEXUS_CHAT_PROXY_PORT || process.env.PORT || 3010);
 
 function extractMessage(body) {
   if (typeof body?.message === "string") return body.message;
@@ -28,35 +31,36 @@ function extractMessage(body) {
 }
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "proxy-online", port: PORT });
+  res.json({ status: "proxy-online", port: PORT, aiBrainConfigured: Boolean(AI_BRAIN) });
 });
 
 app.post("/api/chat", async (req, res) => {
   try {
+    if (!AI_BRAIN) {
+      res.status(500).json({ error: "AI Brain API URL is not configured" });
+      return;
+    }
+
     const message = extractMessage(req.body);
 
     if (!message) {
-      res.status(400).send(`3:${JSON.stringify("message required")}\n`);
+      res.status(400).json({ error: "message required" });
       return;
     }
 
     const response = await fetch(`${AI_BRAIN}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, stream: Boolean(req.body?.stream) }),
     });
 
     const data = await response.json();
-    const text = data.reply || data.content || data.error || "No response.";
-
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Cache-Control", "no-cache");
-    res.send(`0:${JSON.stringify(text)}\n`);
+    res.status(response.status).json(data);
   } catch (err) {
-    res.status(500).send(`3:${JSON.stringify(err.message)}\n`);
+    res.status(500).json({ error: "Proxy failed", details: err.message });
   }
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Nexus AI stream proxy running on :${PORT}`);
+  console.log(`Nexus AI chat proxy running on :${PORT}`);
 });
