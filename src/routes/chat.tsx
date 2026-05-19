@@ -6,6 +6,15 @@ import { GlassPanel, NeonButton, SectionHeader, StatusDot } from "@/components/n
 import { MessageView, ToolPart } from "@/components/chat";
 import { useNexusChat } from "@/services/chat";
 
+function safeId(prefix = "msg") {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return safeId();
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+
 export const Route = createFileRoute("/chat")({
   head: () => ({
     meta: [

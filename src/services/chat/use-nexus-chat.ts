@@ -2,6 +2,15 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { sendChat } from "./chat-client";
 import type { ChatMessage, ChatMessagePart, ChatToolPart } from "./types";
 
+function safeId(prefix = "msg") {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return safeId();
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+
 export type ChatStatus = "ready" | "submitted" | "streaming" | "reconnecting" | "error";
 
 function createMessage(
@@ -11,7 +20,7 @@ function createMessage(
 ): ChatMessage {
   const id =
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-      ? crypto.randomUUID()
+      ? safeId()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   return {
