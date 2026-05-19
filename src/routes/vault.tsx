@@ -1,55 +1,65 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GlassPanel, SectionHeader, StatusDot, NeonButton } from "@/components/nexus/primitives";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/vault")({
-  head: () => ({
-    meta: [
-      { title: "Knowledge Vault — NEXUS" },
-      { name: "description", content: "Notes, insights, semantic linking" },
-    ],
-  }),
-  component: Page,
-});
+type VaultFile = { id: string; originalName: string; kind: string; status: string; summary: string | null; size: number };
+
+export const Route = createFileRoute("/vault")({ component: Page });
 
 function Page() {
+  const [files, setFiles] = useState<VaultFile[]>([]);
+  const [content, setContent] = useState("");
+  const [error, setError] = useState("");
+
+  const refresh = async () => {
+    const res = await fetch("/api/files");
+    const payload = (await res.json()) as { files?: VaultFile[] };
+    setFiles(payload.files || []);
+  };
+
+  useEffect(() => { void refresh(); }, []);
+
+  const upload = async (file: File) => {
+    const data = await file.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(data)));
+    const res = await fetch("/api/files", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filename: file.name, contentBase64: base64 }) });
+    if (!res.ok) { const p = await res.json(); setError(p.error || "Upload failed"); return; }
+    setError("");
+    void refresh();
+  };
+
+  const preview = async (id: string) => {
+    const res = await fetch(`/api/files/${id}/content`);
+    const payload = (await res.json()) as { content?: string; error?: string };
+    setContent(payload.content || payload.error || "No preview");
+  };
+
+  const analyze = async (id: string) => { await fetch(`/api/files/${id}/analyze`, { method: "POST" }); void refresh(); };
+  const saveToMemory = async (id: string) => { await fetch(`/api/files/${id}/save-summary-to-memory`, { method: "POST" }); };
+  const removeFile = async (id: string) => { await fetch(`/api/files/${id}`, { method: "DELETE" }); void refresh(); };
+
   return (
     <div className="space-y-6">
       <GlassPanel className="relative overflow-hidden p-6" scanline>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--neon-cyan)_14%,transparent),transparent_60%)]" />
-        <div className="relative">
-          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-neon-cyan">
-            <StatusDot pulse /> Personal corpus
-          </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Knowledge Vault</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">Notes, insights, semantic linking</p>
-        </div>
+        <div className="relative"><div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-neon-cyan"><StatusDot pulse /> Personal corpus</div><h1 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">Knowledge Vault</h1></div>
       </GlassPanel>
-
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <GlassPanel className="lg:col-span-2">
-          <SectionHeader eyebrow="Module" title="Online · awaiting backend" subtitle="UI scaffold ready. Service contract pending in /docs/architecture." right={<NeonButton variant="ghost">Inspect</NeonButton>} />
-          <div className="grid grid-cols-2 gap-3 p-5 md:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="rounded border border-border/60 p-3">
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">slot-{(i + 1).toString().padStart(2, "0")}</div>
-                <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-muted">
-                  <div className="h-full bg-gradient-to-r from-[color:var(--neon-cyan)] to-[color:var(--neon-violet)]" style={{ width: `${20 + ((i * 13) % 70)}%` }} />
-                </div>
-              </motion.div>
+          <SectionHeader eyebrow="Files" title="Uploads" right={<input type="file" accept=".txt,.md,.json,.csv" onChange={(e) => { const f = e.target.files?.[0]; if (f) void upload(f); }} />} />
+          {error && <div className="px-5 pb-2 text-xs text-status-error">{error}</div>}
+          <div className="space-y-2 p-5">
+            {files.map((f) => (
+              <div key={f.id} className="rounded border border-border/60 p-3 text-xs">
+                <div className="flex items-center justify-between"><span>{f.originalName}</span><span>{f.kind} · {f.status}</span></div>
+                <div className="mt-2 flex gap-2"><NeonButton variant="ghost" onClick={() => void preview(f.id)}>Preview</NeonButton><NeonButton variant="ghost" onClick={() => void analyze(f.id)}>Analyze</NeonButton><NeonButton variant="ghost" onClick={() => void saveToMemory(f.id)}>Save Summary</NeonButton><NeonButton variant="ghost" onClick={() => void removeFile(f.id)}>Delete</NeonButton></div>
+                {f.summary && <p className="mt-2 text-muted-foreground">{f.summary}</p>}
+              </div>
             ))}
           </div>
         </GlassPanel>
         <GlassPanel>
-          <SectionHeader eyebrow="Status" title="Service contract" />
-          <ul className="space-y-2 px-5 py-4 font-mono text-xs">
-            <li className="flex justify-between"><span className="text-muted-foreground">runtime</span><span className="text-neon-cyan">edge / worker</span></li>
-            <li className="flex justify-between"><span className="text-muted-foreground">transport</span><span className="text-neon-cyan">REST + WS</span></li>
-            <li className="flex justify-between"><span className="text-muted-foreground">store</span><span className="text-neon-violet">postgres + chroma</span></li>
-            <li className="flex justify-between"><span className="text-muted-foreground">queue</span><span className="text-neon-violet">redis · celery</span></li>
-            <li className="flex justify-between"><span className="text-muted-foreground">status</span><span className="text-[color:var(--neon-lime)]">scaffold ready</span></li>
-          </ul>
+          <SectionHeader eyebrow="Preview" title="File content" />
+          <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap p-4 text-xs text-muted-foreground">{content || "Select a file preview"}</pre>
         </GlassPanel>
       </div>
     </div>
