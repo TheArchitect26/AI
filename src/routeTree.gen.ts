@@ -33,8 +33,6 @@ import { Route as ApiRouteImport } from './routes/api'
 import { Route as AiBrainRouteImport } from './routes/ai-brain'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ChatBackup1779147851RouteImport } from './routes/chat.backup.1779147851'
-import { Route as ApiChatLovableBackupRouteImport } from './routes/api/chat.lovable.backup'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -156,24 +154,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChatBackup1779147851Route = ChatBackup1779147851RouteImport.update({
-  id: '/backup/1779147851',
-  path: '/backup/1779147851',
-  getParentRoute: () => ChatRoute,
-} as any)
-const ApiChatLovableBackupRoute = ApiChatLovableBackupRouteImport.update({
-  id: '/chat/lovable/backup',
-  path: '/chat/lovable/backup',
-  getParentRoute: () => ApiRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/ai-brain': typeof AiBrainRoute
-  '/api': typeof ApiRouteWithChildren
+  '/api': typeof ApiRoute
   '/automation': typeof AutomationRoute
-  '/chat': typeof ChatRouteWithChildren
+  '/chat': typeof ChatRoute
   '/infra': typeof InfraRoute
   '/investigate': typeof InvestigateRoute
   '/lab': typeof LabRoute
@@ -192,16 +180,14 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/voice': typeof VoiceRoute
   '/workspace': typeof WorkspaceRoute
-  '/chat/backup/1779147851': typeof ChatBackup1779147851Route
-  '/api/chat/lovable/backup': typeof ApiChatLovableBackupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/ai-brain': typeof AiBrainRoute
-  '/api': typeof ApiRouteWithChildren
+  '/api': typeof ApiRoute
   '/automation': typeof AutomationRoute
-  '/chat': typeof ChatRouteWithChildren
+  '/chat': typeof ChatRoute
   '/infra': typeof InfraRoute
   '/investigate': typeof InvestigateRoute
   '/lab': typeof LabRoute
@@ -220,17 +206,15 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/voice': typeof VoiceRoute
   '/workspace': typeof WorkspaceRoute
-  '/chat/backup/1779147851': typeof ChatBackup1779147851Route
-  '/api/chat/lovable/backup': typeof ApiChatLovableBackupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agents': typeof AgentsRoute
   '/ai-brain': typeof AiBrainRoute
-  '/api': typeof ApiRouteWithChildren
+  '/api': typeof ApiRoute
   '/automation': typeof AutomationRoute
-  '/chat': typeof ChatRouteWithChildren
+  '/chat': typeof ChatRoute
   '/infra': typeof InfraRoute
   '/investigate': typeof InvestigateRoute
   '/lab': typeof LabRoute
@@ -249,8 +233,6 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/voice': typeof VoiceRoute
   '/workspace': typeof WorkspaceRoute
-  '/chat/backup/1779147851': typeof ChatBackup1779147851Route
-  '/api/chat/lovable/backup': typeof ApiChatLovableBackupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -279,8 +261,6 @@ export interface FileRouteTypes {
     | '/vault'
     | '/voice'
     | '/workspace'
-    | '/chat/backup/1779147851'
-    | '/api/chat/lovable/backup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -307,8 +287,6 @@ export interface FileRouteTypes {
     | '/vault'
     | '/voice'
     | '/workspace'
-    | '/chat/backup/1779147851'
-    | '/api/chat/lovable/backup'
   id:
     | '__root__'
     | '/'
@@ -335,17 +313,15 @@ export interface FileRouteTypes {
     | '/vault'
     | '/voice'
     | '/workspace'
-    | '/chat/backup/1779147851'
-    | '/api/chat/lovable/backup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRoute
   AiBrainRoute: typeof AiBrainRoute
-  ApiRoute: typeof ApiRouteWithChildren
+  ApiRoute: typeof ApiRoute
   AutomationRoute: typeof AutomationRoute
-  ChatRoute: typeof ChatRouteWithChildren
+  ChatRoute: typeof ChatRoute
   InfraRoute: typeof InfraRoute
   InvestigateRoute: typeof InvestigateRoute
   LabRoute: typeof LabRoute
@@ -536,50 +512,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chat/backup/1779147851': {
-      id: '/chat/backup/1779147851'
-      path: '/backup/1779147851'
-      fullPath: '/chat/backup/1779147851'
-      preLoaderRoute: typeof ChatBackup1779147851RouteImport
-      parentRoute: typeof ChatRoute
-    }
-    '/api/chat/lovable/backup': {
-      id: '/api/chat/lovable/backup'
-      path: '/chat/lovable/backup'
-      fullPath: '/api/chat/lovable/backup'
-      preLoaderRoute: typeof ApiChatLovableBackupRouteImport
-      parentRoute: typeof ApiRoute
-    }
   }
 }
-
-interface ApiRouteChildren {
-  ApiChatLovableBackupRoute: typeof ApiChatLovableBackupRoute
-}
-
-const ApiRouteChildren: ApiRouteChildren = {
-  ApiChatLovableBackupRoute: ApiChatLovableBackupRoute,
-}
-
-const ApiRouteWithChildren = ApiRoute._addFileChildren(ApiRouteChildren)
-
-interface ChatRouteChildren {
-  ChatBackup1779147851Route: typeof ChatBackup1779147851Route
-}
-
-const ChatRouteChildren: ChatRouteChildren = {
-  ChatBackup1779147851Route: ChatBackup1779147851Route,
-}
-
-const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRoute,
   AiBrainRoute: AiBrainRoute,
-  ApiRoute: ApiRouteWithChildren,
+  ApiRoute: ApiRoute,
   AutomationRoute: AutomationRoute,
-  ChatRoute: ChatRouteWithChildren,
+  ChatRoute: ChatRoute,
   InfraRoute: InfraRoute,
   InvestigateRoute: InvestigateRoute,
   LabRoute: LabRoute,
