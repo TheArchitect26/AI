@@ -49,6 +49,21 @@ export class SqliteAdapter implements PersistenceAdapter {
         updated_at TEXT NOT NULL
       );
 
+
+      CREATE TABLE IF NOT EXISTS files (
+        id TEXT PRIMARY KEY,
+        original_name TEXT NOT NULL,
+        stored_name TEXT NOT NULL,
+        path TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        size INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        status TEXT NOT NULL,
+        summary TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS conversations (
         id TEXT PRIMARY KEY,
         title TEXT NOT NULL,
@@ -70,8 +85,8 @@ export class SqliteAdapter implements PersistenceAdapter {
       CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated_at DESC);
       CREATE INDEX IF NOT EXISTS idx_conversation_messages_conversation ON conversation_messages(conversation_id, created_at ASC);
 
-      INSERT OR IGNORE INTO system_meta(key, value) VALUES ('schema_version', 'phase1b');
-      UPDATE system_meta SET value='phase1b', updated_at=datetime('now') WHERE key='schema_version';
+      INSERT OR IGNORE INTO system_meta(key, value) VALUES ('schema_version', 'phase1c');
+      UPDATE system_meta SET value='phase1c', updated_at=datetime('now') WHERE key='schema_version';
     `);
   }
 

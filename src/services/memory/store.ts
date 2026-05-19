@@ -3,7 +3,7 @@ import type { CreateMemoryInput, MemoryRecord } from "./types";
 
 function id() { return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 const now = () => new Date().toISOString();
-const clamp = (v: number) => Math.max(0, Math.min(1, v));
+const clamp = (v: number) => Math.max(0, Math.min(10, v));
 
 function mapRow(row: Record<string, unknown>): MemoryRecord {
   return {
