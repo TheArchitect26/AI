@@ -1,17 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { aiBrain } from "@/lib/ai-brain-api";
+import { aiBrain } from "@/services/api";
 
 export const Route = createFileRoute("/ai-brain")({
   component: AIBrainPage,
 });
 
+type AgentSummary = { name?: string; role?: string };
+type TaskSummary = { id?: string; title?: string; agent?: string; status?: string };
+type LogSummary = { id?: string; action?: string; result?: string };
+
 function AIBrainPage() {
-  const [health, setHealth] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
-  const [agents, setAgents] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [health, setHealth] = useState<unknown>(null);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
+  const [agents, setAgents] = useState<AgentSummary[]>([]);
+  const [tasks, setTasks] = useState<TaskSummary[]>([]);
+  const [logs, setLogs] = useState<LogSummary[]>([]);
   const [message, setMessage] = useState("");
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,10 +30,10 @@ function AIBrainPage() {
     ]);
 
     setHealth(h);
-    setStats(s);
-    setAgents(Array.isArray(a) ? a : []);
-    setTasks(Array.isArray(t) ? t : []);
-    setLogs(Array.isArray(l) ? l : []);
+    setStats(s && typeof s === "object" && !Array.isArray(s) ? s : null);
+    setAgents(Array.isArray(a) ? (a as AgentSummary[]) : []);
+    setTasks(Array.isArray(t) ? (t as TaskSummary[]) : []);
+    setLogs(Array.isArray(l) ? (l as LogSummary[]) : []);
   }
 
   async function send() {
@@ -56,21 +60,12 @@ function AIBrainPage() {
     <div className="min-h-screen bg-black p-6 text-white">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">
-            AI Brain Bridge
-          </p>
-          <h1 className="mt-2 text-4xl font-bold">
-            Nexus connected to AI Brain Backend
-          </h1>
-          <p className="mt-2 text-zinc-400">
-            Live backend: http://172.236.24.95:4000
-          </p>
+          <p className="text-sm uppercase tracking-[0.3em] text-cyan-400">AI Brain Bridge</p>
+          <h1 className="mt-2 text-4xl font-bold">Nexus connected to AI Brain Backend</h1>
+          <p className="mt-2 text-zinc-400">Live backend: configured by environment</p>
         </div>
 
-        <button
-          onClick={load}
-          className="rounded-xl bg-white px-5 py-3 font-semibold text-black"
-        >
+        <button onClick={load} className="rounded-xl bg-white px-5 py-3 font-semibold text-black">
           Refresh
         </button>
       </div>
@@ -80,9 +75,7 @@ function AIBrainPage() {
           Object.entries(stats).map(([key, value]) => (
             <div key={key} className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
               <p className="text-sm text-zinc-500">{key}</p>
-              <p className="mt-2 text-4xl font-bold text-cyan-400">
-                {String(value)}
-              </p>
+              <p className="mt-2 text-4xl font-bold text-cyan-400">{String(value)}</p>
             </div>
           ))}
       </div>
@@ -126,9 +119,12 @@ function AIBrainPage() {
           <h2 className="mb-4 text-2xl font-bold">Agents</h2>
           <div className="space-y-3">
             {agents.map((agent) => (
-              <div key={agent.name} className="rounded-xl border border-zinc-800 bg-black p-4">
-                <p className="font-bold">{agent.name}</p>
-                <p className="text-sm text-zinc-400">{agent.role}</p>
+              <div
+                key={agent.name ?? crypto.randomUUID()}
+                className="rounded-xl border border-zinc-800 bg-black p-4"
+              >
+                <p className="font-bold">{agent.name ?? "Unnamed agent"}</p>
+                <p className="text-sm text-zinc-400">{agent.role ?? "unknown"}</p>
               </div>
             ))}
           </div>
@@ -138,10 +134,13 @@ function AIBrainPage() {
           <h2 className="mb-4 text-2xl font-bold">Tasks</h2>
           <div className="space-y-3">
             {tasks.slice(0, 8).map((task) => (
-              <div key={task.id} className="rounded-xl border border-zinc-800 bg-black p-4">
-                <p className="font-bold">{task.title}</p>
+              <div
+                key={task.id ?? crypto.randomUUID()}
+                className="rounded-xl border border-zinc-800 bg-black p-4"
+              >
+                <p className="font-bold">{task.title ?? "Untitled task"}</p>
                 <p className="text-sm text-zinc-400">
-                  {task.agent} · {task.status}
+                  {task.agent ?? "unassigned"} · {task.status ?? "unknown"}
                 </p>
               </div>
             ))}
@@ -152,11 +151,12 @@ function AIBrainPage() {
           <h2 className="mb-4 text-2xl font-bold">AI Logs</h2>
           <div className="space-y-3">
             {logs.slice(0, 8).map((log) => (
-              <div key={log.id} className="rounded-xl border border-zinc-800 bg-black p-4">
-                <p className="font-bold">{log.action}</p>
-                <p className="line-clamp-3 text-sm text-zinc-400">
-                  {log.result}
-                </p>
+              <div
+                key={log.id ?? crypto.randomUUID()}
+                className="rounded-xl border border-zinc-800 bg-black p-4"
+              >
+                <p className="font-bold">{log.action ?? "Log entry"}</p>
+                <p className="line-clamp-3 text-sm text-zinc-400">{log.result ?? ""}</p>
               </div>
             ))}
           </div>
